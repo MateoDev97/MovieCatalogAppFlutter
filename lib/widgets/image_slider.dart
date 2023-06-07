@@ -1,30 +1,39 @@
 import 'package:flutter/material.dart';
 
+import '../models/models.dart';
+
 class ImageSlider extends StatelessWidget {
-  const ImageSlider({super.key});
+  const ImageSlider({super.key, required this.movies});
+
+  final List<Movie> movies;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 260,
+      height: 280,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'Populars',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 10),
+              child: Text(
+                'Populars',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
           const SizedBox(height: 5),
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: 20,
+              itemCount: movies.length,
               itemBuilder: (BuildContext context, int index) {
-                return _ImagePoster();
+                return _ImagePoster(
+                  movie: movies[index],
+                );
               },
             ),
           ),
@@ -35,6 +44,10 @@ class ImageSlider extends StatelessWidget {
 }
 
 class _ImagePoster extends StatelessWidget {
+  const _ImagePoster({required this.movie});
+
+  final Movie movie;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -48,18 +61,18 @@ class _ImagePoster extends StatelessWidget {
                 arguments: 'movie-arguments'),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: const FadeInImage(
-                image: NetworkImage('https://via.placeholder.com/300x400'),
-                placeholder: AssetImage('assets/no-image.jpg'),
+              child: FadeInImage(
+                image: NetworkImage(movie.safePosterImageUrl),
+                placeholder: const AssetImage('assets/no-image.jpg'),
                 width: 130,
                 height: 190,
                 fit: BoxFit.cover,
               ),
             ),
           ),
-          const SizedBox(height: 5),
-          const Text(
-            'Starasd dasdasdsadsad dasdsadsads',
+          const SizedBox(height: 10),
+          Text(
+            movie.title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
