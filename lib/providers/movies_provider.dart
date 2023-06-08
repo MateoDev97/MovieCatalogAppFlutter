@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
+import 'package:movies_app/helpers/debouncer.dart';
 import 'package:movies_app/models/models.dart';
+import 'package:movies_app/models/search_movie_response.dart';
 
 class MoviesProvider extends ChangeNotifier {
   final String _baseUrl = 'api.themoviedb.org';
@@ -10,20 +15,38 @@ class MoviesProvider extends ChangeNotifier {
   List<Movie> nowPlayingMovies = [];
   List<Movie> popularMovies = [];
 
+  Map<int, List<Cast>> moviesCast = {};
+
+  int _popularPage = 0;
+
+  final debouncer = Debouncer(duration: const Duration(milliseconds: 500));
+
+  final _streamController = StreamController<List<Movie>>.broadcast();
+  Stream<List<Movie>> get sugestionStream => _streamController.stream;
+
   MoviesProvider() {
     getNowPlayingMovies();
     getPopularMovies();
   }
 
-  getNowPlayingMovies() async {
-    var url = Uri.https(_baseUrl, '3/movie/now_playing');
+  Future<Response> _getJsonData(String path, [int page = 1]) async {
+    final url = Uri.https(_baseUrl, path, {
+      'language': 'en-US',
+      'page': '$page',
+    });
 
-    // Await the http get response, then decode the json-formatted response.
-    var response = await http.get(url, headers: {
+    final response = await http.get(url, headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'Authorization': 'Bearer $_token',
     });
+
+    return response;
+  }
+
+  getNowPlayingMovies() async {
+    final response = await _getJsonData('3/movie/now_playing');
+
     if (response.statusCode == 200) {
       final modelNowPlaying = MoviesResponse.fromRawJson(response.body);
       nowPlayingMovies = modelNowPlaying.results;
@@ -34,20 +57,68 @@ class MoviesProvider extends ChangeNotifier {
   }
 
   getPopularMovies() async {
-    var url = Uri.https(_baseUrl, '3/movie/popular');
+    _popularPage++;
 
-    // Await the http get response, then decode the json-formatted response.
-    var response = await http.get(url, headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $_token',
-    });
+    final response = await _getJsonData('3/movie/popular', _popularPage);
+
     if (response.statusCode == 200) {
       final modelPopular = MoviesResponse.fromRawJson(response.body);
-      popularMovies = modelPopular.results;
+      popularMovies = [...popularMovies, ...modelPopular.results];
       notifyListeners();
     } else {
       print('Request failed with status: ${response.statusCode}.');
     }
+  }
+
+  Future<List<Cast>> getCastByMovieId(int movieId) async {
+    if (moviesCast.containsKey(movieId)) return moviesCast[movieId]!;
+
+    final response = await _getJsonData('3/movie/$movieId/credits');
+
+    final modelCredits = CreditsResponse.fromRawJson(response.body);
+
+    final actingMembers = modelCredits.cast
+        .where((member) => member.knownForDepartment == 'Acting')
+        .toList();
+
+    moviesCast[movieId] = actingMembers;
+
+    return actingMembers;
+  }
+
+  Future<List<Movie>> searchMovies(String query) async {
+    final url = Uri.https(
+      _baseUrl,
+      '3/search/movie',
+      {
+        'language': 'en-US',
+        'page': '1',
+        'query': query,
+      },
+    );
+
+    final response = await http.get(url, headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $_token',
+    });
+
+    final modelSearchResponse = SearchMovieResponse.fromRawJson(response.body);
+    return modelSearchResponse.results;
+  }
+
+  getSuggestionsByQuery(String query) {
+    debouncer.value = '';
+    debouncer.onValue = (value) async {
+      final result = await searchMovies(value);
+      _streamController.add(result);
+    };
+
+    final timer = Timer.periodic(const Duration(milliseconds: 300), (_) {
+      debouncer.value = query;
+    });
+
+    Future.delayed(const Duration(milliseconds: 301))
+        .then((_) => timer.cancel());
   }
 }

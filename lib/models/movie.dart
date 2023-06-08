@@ -16,9 +16,19 @@ class Movie {
   double voteAverage;
   int voteCount;
 
+  String? heroId;
+
   get safePosterImageUrl {
     if (posterPath != null) {
       return 'https://image.tmdb.org/t/p/w500$posterPath';
+    } else {
+      return 'https://via.placeholder.com/200x300';
+    }
+  }
+
+  get safeBackdropImageUrl {
+    if (backdropPath != null) {
+      return 'https://image.tmdb.org/t/p/w500$backdropPath';
     } else {
       return 'https://via.placeholder.com/500x300';
     }
