@@ -16,6 +16,7 @@ class MoviesProvider extends ChangeNotifier {
   List<Movie> popularMovies = [];
 
   Map<int, List<Cast>> moviesCast = {};
+  Map<int, List<Movie>> actorMovies = {};
 
   int _popularPage = 0;
 
@@ -120,5 +121,52 @@ class MoviesProvider extends ChangeNotifier {
 
     Future.delayed(const Duration(milliseconds: 301))
         .then((_) => timer.cancel());
+  }
+
+  Future<List<Movie>?> getMoviestByPersonId(int personId) async {
+    if (actorMovies.containsKey(personId)) return actorMovies[personId]!;
+
+    final response = await _getJsonData('3/person/$personId/movie_credits');
+
+    final MoviesByActorResponse modelMoviesByActor;
+
+    try {
+      modelMoviesByActor = MoviesByActorResponse.fromRawJson(response.body);
+      actorMovies[personId] = modelMoviesByActor.cast;
+
+      return modelMoviesByActor.cast;
+    } catch (e) {
+      // No specified type, handles all
+      print('Error: $e');
+      return null;
+    }
+  }
+
+  Future<ActorInfoResponse> getActorInfo(int personId) async {
+    final response = await _getJsonData('3/person/$personId');
+
+    final modelActorInfo = ActorInfoResponse.fromRawJson(response.body);
+
+    return modelActorInfo;
+  }
+
+  Future<VideoResult?> getTrailerByMovieId(int movieId) async {
+    final response = await _getJsonData('3/movie/$movieId/videos');
+
+    final MovieVideosResponse modelMoviesVideos;
+
+    try {
+      modelMoviesVideos = MovieVideosResponse.fromRawJson(response.body);
+
+      VideoResult? videoTrailer = modelMoviesVideos.results.firstWhere((video) {
+        return video.site == 'YouTube' && video.type == 'Trailer';
+      });
+
+      return videoTrailer;
+    } catch (e) {
+      // No specified type, handles all
+      print('Error: $e');
+      return null;
+    }
   }
 }

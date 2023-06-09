@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:movies_app/providers/movies_provider.dart';
 import 'package:movies_app/theme/app_theme.dart';
 import 'package:movies_app/widgets/widgets.dart';
+import 'package:provider/provider.dart';
 import '../models/models.dart';
 
 class DetailView extends StatelessWidget {
@@ -20,9 +23,7 @@ class DetailView extends StatelessWidget {
                 _PosterAndTitle(movie: movie),
                 _Overview(movie: movie),
                 const SizedBox(height: 10),
-                CastingCards(
-                  movieId: movie.id,
-                ),
+                CastingCards(movieId: movie.id),
               ],
             ),
           )
@@ -76,6 +77,7 @@ class _PosterAndTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final moviesProvider = Provider.of<MoviesProvider>(context, listen: false);
 
     return Container(
       margin: const EdgeInsets.only(top: 20),
@@ -90,13 +92,14 @@ class _PosterAndTitle extends StatelessWidget {
                 image: NetworkImage(movie.safePosterImageUrl),
                 placeholder: const AssetImage('assets/no-image.jpg'),
                 height: 150,
+                width: 110,
                 fit: BoxFit.cover,
               ),
             ),
           ),
           const SizedBox(width: 20),
           ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: size.width - 190),
+            constraints: BoxConstraints(maxWidth: size.width - 180),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -112,12 +115,47 @@ class _PosterAndTitle extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2,
                 ),
-                Row(
-                  children: [
-                    const Icon(Icons.star_outline),
-                    Text('${movie.voteAverage}'),
-                  ],
-                )
+                movie.releaseDate != null
+                    ? Text(
+                        "Year: ${DateFormat('yyyy').format(movie.releaseDate!)}",
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      )
+                    : Container(),
+                movie.voteAverage != 0
+                    ? Row(
+                        children: [
+                          const Icon(Icons.star_outline),
+                          Text(movie.voteAverage.toStringAsFixed(1)),
+                        ],
+                      )
+                    : Container(),
+                FutureBuilder(
+                  future: moviesProvider.getTrailerByMovieId(movie.id),
+                  builder: (_, AsyncSnapshot snapshot) {
+                    if (!snapshot.hasData) {
+                      return Container();
+                    }
+
+                    return Row(
+                      children: [
+                        const Text('Watch trailer'),
+                        IconButton(
+                          icon: Icon(
+                            Icons.play_circle_fill_rounded,
+                            color: Colors.red.withOpacity(0.9),
+                            size: 30,
+                          ),
+                          onPressed: () {
+                            Navigator.pushNamed(context, 'playerView',
+                                arguments: snapshot.data!.key);
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           )

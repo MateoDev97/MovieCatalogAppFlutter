@@ -25,8 +25,6 @@ class CastingCards extends StatelessWidget {
           );
         }
 
-        //print("test ${snapshot.data?.length}");
-
         return Container(
           margin: const EdgeInsets.only(bottom: 30),
           width: double.infinity,
@@ -55,32 +53,36 @@ class _CastCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 5),
       width: 110,
       height: 120,
-      child: Column(children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: FadeInImage(
-            image: NetworkImage(castMember.safeProfileImageUrl),
-            placeholder: const AssetImage('assets/no-image.jpg'),
-            height: 140,
-            fit: BoxFit.cover,
+      child: GestureDetector(
+        onTap: () =>
+            Navigator.pushNamed(context, 'actorView', arguments: castMember),
+        child: Column(children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: FadeInImage(
+              image: NetworkImage(castMember.safeProfileImageUrl),
+              placeholder: const AssetImage('assets/no-image.jpg'),
+              height: 140,
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          castMember.name,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 5),
-        Text(
-          castMember.character ?? "",
-          style: const TextStyle(fontWeight: FontWeight.bold),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-        )
-      ]),
+          const SizedBox(height: 5),
+          Text(
+            castMember.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 5),
+          Text(
+            castMember.character ?? "",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          )
+        ]),
+      ),
     );
   }
 }

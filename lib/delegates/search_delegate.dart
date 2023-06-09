@@ -31,11 +31,22 @@ class MovieSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildResults(BuildContext context) {
-    return const Text("buildResults");
+    return _SugestionsResults(query: query);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
+    return _SugestionsResults(query: query);
+  }
+}
+
+class _SugestionsResults extends StatelessWidget {
+  const _SugestionsResults({required this.query});
+
+  final String query;
+
+  @override
+  Widget build(BuildContext context) {
     if (query.isEmpty) {
       return const Center(
         child: Icon(
@@ -92,6 +103,7 @@ class _RowSearch extends StatelessWidget {
           image: NetworkImage(movie.safePosterImageUrl),
           placeholder: const AssetImage('assets/no-image.jpg'),
           height: 80,
+          width: 40,
           fit: BoxFit.cover,
         ),
       ),

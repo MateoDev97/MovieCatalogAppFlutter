@@ -16,7 +16,8 @@ class HomeView extends StatelessWidget {
         title: const Text('Movies App'),
         actions: [
           IconButton(
-            onPressed: () => showSearch(context: context, delegate: MovieSearchDelegate()),
+            onPressed: () =>
+                showSearch(context: context, delegate: MovieSearchDelegate()),
             icon: const Icon(Icons.search),
           )
         ],

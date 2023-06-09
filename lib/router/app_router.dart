@@ -7,11 +7,14 @@ class AppRoutes {
   static Map<String, Widget Function(BuildContext)> getAppRoutes() {
     Map<String, Widget Function(BuildContext)> appRoutes = {};
 
+    appRoutes.addAll({'homeView': (BuildContext context) => const HomeView()});
+    appRoutes
+        .addAll({'detailView': (BuildContext context) => const DetailView()});
+    appRoutes
+        .addAll({'actorView': (BuildContext context) => const ActorView()});
     appRoutes.addAll(
-        {'homeView': (BuildContext context) => const HomeView()});
-    appRoutes.addAll(
-        {'detailView': (BuildContext context) => const DetailView()});
-    
+        {'playerView': (BuildContext context) => const VideoPlayerView()});
+
     return appRoutes;
   }
 }
