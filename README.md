@@ -1,3 +1,3 @@
-# movies_app
+# MoviesApp Flutter
 
-A new Flutter project.
+
